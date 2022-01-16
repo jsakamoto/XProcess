@@ -118,5 +118,39 @@ namespace Toolbelt.Diagnostics.Test
                 outputLines[i].Is(i.ToString());
             }
         }
+
+        [Test]
+        public async Task WaitForOutputAsync_Test()
+        {
+            using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);
+            var found = await process.WaitForOutputAsync(str => str == "50", millsecondsTimeout: 1000);
+            found.IsTrue();
+        }
+
+        [Test]
+        public async Task WaitForOutputAsync_AfterExited_Test()
+        {
+            using var process = XProcess.Start("dotnet", "testee.dll", baseDir);
+            await process.WaitForExitAsync();
+            var found = await process.WaitForOutputAsync(str => str == "Nice to", millsecondsTimeout: 30000);
+            found.IsTrue();
+        }
+
+        [Test]
+        public async Task WaitForOutputAsync_AfterExited_NotFound_Test()
+        {
+            using var process = XProcess.Start("dotnet", "testee.dll", baseDir);
+            await process.WaitForExitAsync();
+            var found = await process.WaitForOutputAsync(str => false, millsecondsTimeout: 30000);
+            found.IsFalse();
+        }
+
+        [Test]
+        public async Task WaitForOutputAsync_TimeOuted_Test()
+        {
+            using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);
+            var found = await process.WaitForOutputAsync(str => false, millsecondsTimeout: 3000);
+            found.IsFalse();
+        }
     }
 }

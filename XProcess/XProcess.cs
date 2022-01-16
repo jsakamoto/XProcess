@@ -191,6 +191,19 @@ namespace Toolbelt.Diagnostics
             }
         }
 
+        public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, int millsecondsTimeout)
+        {
+            var bufferedOutput = this.GetAndClearBufferedOutput();
+            if (predicate(bufferedOutput)) return true;
+
+            var cts = new CancellationTokenSource(millsecondsTimeout);
+            await foreach (var output in this.GetOutputAsyncStream().WithCancellation(cts.Token))
+            {
+                if (cts.IsCancellationRequested) break;
+                if (predicate(output)) return true;
+            }
+            return false;
+        }
 
         public void Dispose()
         {

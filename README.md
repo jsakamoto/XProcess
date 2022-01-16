@@ -22,6 +22,13 @@ await foreach(string output in process.GetOutputAsyncStream())
 // When reaching here, it means the process was exited.
 ```
 
+```csharp
+using Toolbelt.Diagnostics;
+...
+using var process = await XProcess.Start("foo.exe");
+var found = await process.WaitForOutputAsync(str => str.Contains("Now listening on:"), millsecondsTimeout: 5000);
+// If the "found" is false, it means the process had not outputed "Now listening on:" in 5 sec.
+```
 
 ## Release Notes
 
