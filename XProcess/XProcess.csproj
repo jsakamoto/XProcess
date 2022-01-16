@@ -8,15 +8,17 @@
     <RootNamespace>Toolbelt.Diagnostics</RootNamespace>
     <AssemblyName>Toolbelt.Diagnostics.XProcess</AssemblyName>
     <PackageId>XProcess</PackageId>
+    <PackageIcon>nupkg-icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.1.0</Version>
     <Authors>J.Sakamoto</Authors>
     <Company>J.Sakamoto</Company>
     <Product>Invoke an external process, and expose its output as an async stream in C# 8.0.</Product>
     <Description>Invoke an external process, and expose its output as an async stream in C# 8.0.</Description>
-    <Copyright>Copyright 2021 J.Sakamoto, Mozilla Public License 2.0</Copyright>
+    <Copyright>Copyright 2021-2022 J.Sakamoto, Mozilla Public License 2.0</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/jsakamoto/XProcess</PackageProjectUrl>
     <PackageReleaseNotes>(Please write the package release notes in "RELEASE-NOTES.txt".)</PackageReleaseNotes>
@@ -28,15 +30,9 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PackageIcon>nupkg-icon.png</PackageIcon>
-  </PropertyGroup>
   <ItemGroup>
-    <None Include="..\.assets\nupkg-icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-      <Visible>false</Visible>
-    </None>
+    <None Include="..\.assets\nupkg-icon.png" Pack="true" Visible="false" PackagePath="" />
+    <None Include="..\README.md" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
