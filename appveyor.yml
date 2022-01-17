@@ -1,0 +1,14 @@
+version: 1.0.{build}
+image: Visual Studio 2022
+configuration: Debug
+platform: Any CPU
+before_build:
+- cmd: nuget restore
+build:
+  verbosity: minimal
+test_script:
+- cmd: >-
+    cd XProcess.Test
+
+    dotnet test
+
