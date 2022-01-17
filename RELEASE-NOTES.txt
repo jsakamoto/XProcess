@@ -1,4 +1,7 @@
-﻿v.1.1.0
+﻿v.1.2.0
+- Improve: added overload version of async iterator methods that accept a cancellation token.
+
+v.1.1.0
 - Add "WaitForOutputAsync()" method.
 
 v.1.0.0
