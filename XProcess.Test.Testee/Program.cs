@@ -48,16 +48,16 @@ namespace Toolbelt.Diagnostics.Test
         private static void HelloWorld()
         {
             WriteLine("Hello,");
-            Thread.Sleep(10);
+            Thread.Sleep(100);
 
             WriteLine("everyone.");
-            Thread.Sleep(10);
+            Thread.Sleep(100);
 
             WriteLine("Nice to");
-            Thread.Sleep(10);
+            Thread.Sleep(100);
 
             WriteLine("meet you.");
-            Thread.Sleep(10);
+            Thread.Sleep(100);
         }
 
         private static void InfiniteCounter()
@@ -65,7 +65,7 @@ namespace Toolbelt.Diagnostics.Test
             for (var c = 0; c < 10000; c++)
             {
                 WriteLine(c.ToString());
-                Thread.Sleep(10);
+                Thread.Sleep(100);
             }
         }
     }

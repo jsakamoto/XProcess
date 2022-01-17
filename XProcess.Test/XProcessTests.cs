@@ -104,11 +104,11 @@ namespace Toolbelt.Diagnostics.Test
             using var process = XProcess.Start("dotnet", "testee.dll -i -o mixboth", baseDir);
             await process.GetOutputAsyncStream().GetAsyncEnumerator().MoveNextAsync();
 
-            await Task.Delay(100);
+            await Task.Delay(500);
             var outputLines1 = process.GetAndClearBufferedOutput().Split('\n');
             (outputLines1.Length > 0).IsTrue();
 
-            await Task.Delay(100);
+            await Task.Delay(500);
             var outputLines2 = process.Output.Split('\n');
             (outputLines2.Length > 0).IsTrue();
 
@@ -123,7 +123,7 @@ namespace Toolbelt.Diagnostics.Test
         public async Task WaitForOutputAsync_Test()
         {
             using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);
-            var found = await process.WaitForOutputAsync(str => str == "50", millsecondsTimeout: 1000);
+            var found = await process.WaitForOutputAsync(str => str == "20", millsecondsTimeout: 3000);
             found.IsTrue();
         }
 
