@@ -148,7 +148,7 @@ namespace Toolbelt.Diagnostics.Test
         [Test]
         public async Task WaitForOutputAsync_TimeOuted_Test()
         {
-            using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);
+            using var process = XProcess.Start("dotnet", "testee.dll -n", baseDir);
             var found = await process.WaitForOutputAsync(str => false, millsecondsTimeout: 3000);
             found.IsFalse();
         }

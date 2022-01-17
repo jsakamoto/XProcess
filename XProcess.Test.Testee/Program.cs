@@ -36,6 +36,12 @@ namespace Toolbelt.Diagnostics.Test
                 HelloWorld();
             }
 
+            if (Options.NeverExitUntilEnterAnyKey)
+            {
+                Console.WriteLine("Press any keys to exit.");
+                Console.ReadKey(intercept: true);
+            }
+
             return Options.ExitCode;
         }
 

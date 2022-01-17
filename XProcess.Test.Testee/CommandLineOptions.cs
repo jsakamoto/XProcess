@@ -6,6 +6,8 @@
 
         public bool InfiniteCounter { get; set; }
 
+        public bool NeverExitUntilEnterAnyKey { get; set; }
+
         public OutputMode OutputMode { get; set; } = OutputMode.MixBoth;
     }
 }

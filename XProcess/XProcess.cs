@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -122,40 +123,48 @@ namespace Toolbelt.Diagnostics
             return string.Join("\n", current.Where(f => predicate(f)).Select(f => f.Data));
         }
 
-        public async IAsyncEnumerable<string> GetOutputAsyncStream()
+        public IAsyncEnumerable<string> GetOutputAsyncStream() => GetOutputAsyncStream(default);
+
+        public async IAsyncEnumerable<string> GetOutputAsyncStream([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var fragment in GetOutputFragmentAsyncStream())
+            await foreach (var fragment in GetOutputFragmentAsyncStream().WithCancellation(cancellationToken))
             {
                 yield return fragment.Data;
             }
         }
 
-        public async IAsyncEnumerable<string> GetStdOutAsyncStream()
+        public IAsyncEnumerable<string> GetStdOutAsyncStream() => GetStdOutAsyncStream(default);
+
+        public async IAsyncEnumerable<string> GetStdOutAsyncStream([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var fragment in GetOutputFragmentAsyncStream())
+            await foreach (var fragment in GetOutputFragmentAsyncStream().WithCancellation(cancellationToken))
             {
                 if (fragment.Type == XProcessOutputType.StdOut) yield return fragment.Data;
             }
         }
 
-        public async IAsyncEnumerable<string> GetStdErrAsyncStream()
+        public IAsyncEnumerable<string> GetStdErrAsyncStream() => GetStdErrAsyncStream(default);
+
+        public async IAsyncEnumerable<string> GetStdErrAsyncStream([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var fragment in GetOutputFragmentAsyncStream())
+            await foreach (var fragment in GetOutputFragmentAsyncStream().WithCancellation(cancellationToken))
             {
                 if (fragment.Type == XProcessOutputType.StdErr) yield return fragment.Data;
             }
         }
 
-        public async IAsyncEnumerable<XProcessOutputFragment> GetOutputFragmentAsyncStream()
+        public IAsyncEnumerable<XProcessOutputFragment> GetOutputFragmentAsyncStream() => GetOutputFragmentAsyncStream(default);
+
+        public async IAsyncEnumerable<XProcessOutputFragment> GetOutputFragmentAsyncStream([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var reader = OutputChannel.Reader;
-            var cancellerToken = this.CancellerByExit.Token;
+            var ctoken = CancellationTokenSource.CreateLinkedTokenSource(this.CancellerByExit.Token, cancellationToken).Token;
             for (; ; )
             {
                 var fragment = default(XProcessOutputFragment);
                 try
                 {
-                    fragment = await reader.ReadAsync(cancellerToken);
+                    fragment = await reader.ReadAsync(ctoken);
                 }
                 catch (OperationCanceledException) { yield break; }
                 yield return fragment;
@@ -193,13 +202,18 @@ namespace Toolbelt.Diagnostics
 
         public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, int millsecondsTimeout)
         {
+            var cts = new CancellationTokenSource(millsecondsTimeout);
+            return await WaitForOutputAsync(predicate, cts.Token);
+        }
+
+        public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, CancellationToken cancellationToken)
+        {
             var bufferedOutput = this.GetAndClearBufferedOutput();
             if (predicate(bufferedOutput)) return true;
 
-            var cts = new CancellationTokenSource(millsecondsTimeout);
-            await foreach (var output in this.GetOutputAsyncStream().WithCancellation(cts.Token))
+            await foreach (var output in this.GetOutputAsyncStream().WithCancellation(cancellationToken))
             {
-                if (cts.IsCancellationRequested) break;
+                if (cancellationToken.IsCancellationRequested) break;
                 if (predicate(output)) return true;
             }
             return false;
