@@ -68,8 +68,10 @@ namespace Toolbelt.Diagnostics.Test
             {
                 outputs.AppendLine(output);
             }
+
             process.ExitCode.Is(0);
-            outputs.ToString().Is("Hello,\r\neveryone.\r\nNice to\r\nmeet you.\r\n");
+            var nl = Environment.NewLine;
+            outputs.ToString().Is($"Hello,{nl}everyone.{nl}Nice to{nl}meet you.{nl}");
         }
 
         [Test]
@@ -81,8 +83,10 @@ namespace Toolbelt.Diagnostics.Test
             {
                 outputs.AppendLine(output);
             }
+
             process.ExitCode.Is(234);
-            outputs.ToString().Is("Hello,\r\nNice to\r\n");
+            var nl = Environment.NewLine;
+            outputs.ToString().Is($"Hello,{nl}Nice to{nl}");
         }
 
         [Test]
@@ -94,8 +98,10 @@ namespace Toolbelt.Diagnostics.Test
             {
                 outputs.AppendLine(output);
             }
+
             process.ExitCode.Is(0);
-            outputs.ToString().Is("everyone.\r\nmeet you.\r\n");
+            var nl = Environment.NewLine;
+            outputs.ToString().Is($"everyone.{nl}meet you.{nl}");
         }
 
         [Test]
