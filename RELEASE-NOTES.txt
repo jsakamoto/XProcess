@@ -1,4 +1,7 @@
-﻿v.1.2.0
+﻿v.1.3.0
+- Improve: add a new option for terminating the entire process tree when the process object is disposing.
+
+v.1.2.0
 - Improve: added overload version of async iterator methods that accept a cancellation token.
 
 v.1.1.0
