@@ -202,6 +202,12 @@ namespace Toolbelt.Diagnostics
             }
         }
 
+        /// <summary>
+        /// Wait until the predicate function applied to the process output returns true, or it's timeout.
+        /// </summary>
+        /// <param name="predicate">The predicate function applied to the process output.</param>
+        /// <param name="millsecondsTimeout">Timeout millseconds.</param>
+        /// <returns>If the predicate function returns true before timeout, the return value is true. otherwise, it is false.</returns>
         public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, int millsecondsTimeout)
         {
             var cts = new CancellationTokenSource(millsecondsTimeout);
