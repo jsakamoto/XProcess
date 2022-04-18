@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using CommandLineSwitchParser;
@@ -26,6 +27,17 @@ namespace Toolbelt.Diagnostics.Test
             Options = CommandLineSwitch.Parse<CommandLineOptions>(ref args);
 
             CurrentWriter = Options.OutputMode == OutputMode.StdErr ? Console.Error : Console.Out;
+
+            if (Options.SpawnChildProcess)
+            {
+                var childProcess = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = "testee.dll -n", // Never exit until enter any key
+                    WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
+                });
+                Console.WriteLine($"Child Proecess Id: {childProcess?.Id}");
+            }
 
             if (Options.InfiniteCounter)
             {
