@@ -6,6 +6,7 @@
     <WarningsAsErrors>nullable</WarningsAsErrors>
     <RootNamespace>Toolbelt.Diagnostics.Test</RootNamespace>
     <AssemblyName>testee</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

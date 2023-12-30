@@ -1,9 +1,8 @@
-﻿namespace Toolbelt.Diagnostics.Test
+﻿namespace Toolbelt.Diagnostics.Test;
+
+public enum OutputMode
 {
-    public enum OutputMode
-    {
-        StdOut,
-        StdErr,
-        MixBoth
-    }
+    StdOut,
+    StdErr,
+    MixBoth
 }
