@@ -7,14 +7,14 @@ This is a library for .NET that allows you to invoke an external process, and ex
 ```csharp
 using Toolbelt.Diagnostics;
 ...
-using XProcess process = await XProcess.Start("foo.exe").WaitForExitAsync();
+using var process = await XProcess.Start("foo.exe").WaitForExitAsync();
 if (process.ExitCode != 0) throw new Exception(process.Output);
 ```
 
 ```csharp
 using Toolbelt.Diagnostics;
 ...
-using var process = await XProcess.Start("foo.exe");
+using var process = XProcess.Start("foo.exe");
 await foreach(string output in process.GetOutputAsyncStream())
 {
   // do something.
@@ -25,7 +25,7 @@ await foreach(string output in process.GetOutputAsyncStream())
 ```csharp
 using Toolbelt.Diagnostics;
 ...
-using var process = await XProcess.Start("foo.exe");
+using var process = XProcess.Start("foo.exe");
 var found = await process.WaitForOutputAsync(str => str.Contains("Now listening on:"), millsecondsTimeout: 5000);
 // If the "found" is false, it means the process had not outputed "Now listening on:" in 5 sec.
 ```
