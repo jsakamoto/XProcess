@@ -1,0 +1,22 @@
+name: unit tests
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - uses: actions/checkout@v3
+
+      # Install .NET SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.0.*
+
+      # Perform unit tests
+      - name: Perform unit tests
+        run: dotnet test XProcess.Test --nologo
