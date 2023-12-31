@@ -1,4 +1,4 @@
-# XProcess [![NuGet Package](https://img.shields.io/nuget/v/XProcess.svg)](https://www.nuget.org/packages/XProcess/)
+# XProcess [![NuGet Package](https://img.shields.io/nuget/v/XProcess.svg)](https://www.nuget.org/packages/XProcess/) [![unit tests](https://github.com/jsakamoto/XProcess/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/jsakamoto/XProcess/actions/workflows/unit-tests.yml)
 
 This is a library for .NET that allows you to invoke an external process, and expose its output as an async stream in C# 8.0.
 
