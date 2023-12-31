@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.3.1</Version>
+    <Version>1.3.1.1</Version>
     <Authors>J.Sakamoto</Authors>
     <Company>J.Sakamoto</Company>
     <Product>Invoke an external process, and expose its output as an async stream in C# 8.0.</Product>
