@@ -6,6 +6,8 @@ public class CommandLineOptions
 
     public bool InfiniteCounter { get; set; }
 
+    public int CounterDelay { get; set; }
+
     public bool NeverExitUntilEnterAnyKey { get; set; }
 
     public bool SpawnChildProcess { get; set; }

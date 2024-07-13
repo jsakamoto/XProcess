@@ -66,10 +66,12 @@ void HelloWorld()
 
 void InfiniteCounter()
 {
+    var intervalWait = 100;
     for (var c = 0; c < 10000; c++)
     {
-        WriteLine(c.ToString());
-        Thread.Sleep(100);
+        WriteLine(c + (options.CounterDelay == 0 ? "" : $" ({intervalWait} msec)"));
+        Thread.Sleep(intervalWait);
+        intervalWait += options.CounterDelay;
     }
 }
 

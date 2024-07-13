@@ -157,6 +157,37 @@ public class XProcessTests
         found.IsFalse();
     }
 
+    [Test]
+    public async Task WaitForOutputAsync_IdleTimeout_Test()
+    {
+        // Given
+        using var process = XProcess.Start("dotnet", "testee.dll --infinitecounter --counterdelay 10", baseDir);
+
+        // When: Wait with the 200ms idle timeout, and the process will not respond in 200msec at some point, for 3sec.
+        var waitTask = process.WaitForOutputAsync(str => false, option => option.IdleTimeout = 200).AsTask();
+        var processTimeoutTask = Task.Delay(3000);
+        await Task.WhenAny(waitTask, processTimeoutTask);
+
+        // Then: the waiting task was canceled.
+        waitTask.IsCompleted.IsTrue();
+        waitTask.Result.IsFalse();
+    }
+
+    [Test]
+    public async Task WaitForOutputAsync_DoNot_IdleTimeout_Test()
+    {
+        // Given
+        using var process = XProcess.Start("dotnet", "testee.dll --infinitecounter", baseDir);
+
+        // When: Wait with the 200ms idle timeout, but the process keeps responding each 100msec, for 3sec.
+        var waitTask = process.WaitForOutputAsync(str => false, option => option.IdleTimeout = 200);
+        await Task.Delay(3000);
+
+        // Then: the process never completed and the waiting task wasn't canceled.
+        waitTask.IsCompleted.IsFalse();
+        process.ExitCode.IsNull();
+    }
+
     private async ValueTask<(XProcess ParentProcess, Process ChildProcess)> StartTesteeWithChildProcessAsync(XProcessTerminate whenDisposing)
     {
         var parentProcess = XProcess.Start("dotnet", "testee.dll -n --spawnchildprocess", baseDir, options =>

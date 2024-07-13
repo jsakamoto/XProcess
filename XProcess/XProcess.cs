@@ -207,21 +207,45 @@ namespace Toolbelt.Diagnostics
         /// Wait until the predicate function applied to the process output returns true, or it's timeout.
         /// </summary>
         /// <param name="predicate">The predicate function applied to the process output.</param>
-        /// <param name="millsecondsTimeout">Timeout millseconds.</param>
+        /// <param name="millsecondsTimeout">Timeout milliseconds.</param>
         /// <returns>If the predicate function returns true before timeout, the return value is true. otherwise, it is false.</returns>
-        public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, int millsecondsTimeout)
+        public ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, int millsecondsTimeout)
         {
-            var cts = new CancellationTokenSource(millsecondsTimeout);
-            return await this.WaitForOutputAsync(predicate, cts.Token);
+            return this.WaitForOutputAsync(predicate, option => option.ProcessTimeout = millsecondsTimeout);
         }
 
-        public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, CancellationToken cancellationToken)
+        /// <summary>
+        /// Wait until the predicate function applied to the process output returns true, or the cancellation token is canceled.
+        /// </summary>
+        /// <param name="predicate">The predicate function applied to the process output.</param>
+        /// <param name="cancellationToken">The cancellation token that can be used to cancel the operation.</param>
+        /// <returns>If the predicate function returns true before the cancellation token is canceled, the return value is true.</returns>
+        public ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, CancellationToken cancellationToken)
         {
+            return this.WaitForOutputAsync(predicate, option => option.CancellationToken = cancellationToken);
+        }
+
+        /// <summary>
+        /// Wait until the predicate function applied to the process output returns true, or it's timeout or canceled according to the wait option configuration.
+        /// </summary>
+        /// <param name="predicate">The predicate function applied to the process output.</param>
+        /// <param name="configure">The callback to configure the wait options.</param>
+        /// <returns>If the predicate function returns true before the cancellation token is canceled or any timeouts, the return value is true.</returns>
+        public async ValueTask<bool> WaitForOutputAsync(Func<string, bool> predicate, Action<XProcessWaitOptions> configure)
+        {
+            var options = new XProcessWaitOptions();
+            configure(options);
+
+            var idleTimeoutCanceller = new XProcessIdleTimeoutCanceller(options.IdleTimeout);
+            var processCancellationToken = options.ProcessTimeout > 0 ? new CancellationTokenSource(options.ProcessTimeout).Token : CancellationToken.None;
+            var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(idleTimeoutCanceller.Token, processCancellationToken, options.CancellationToken).Token;
+
             var bufferedOutput = this.GetAndClearBufferedOutput();
             if (predicate(bufferedOutput)) return true;
 
             await foreach (var output in this.GetOutputAsyncStream().WithCancellation(cancellationToken))
             {
+                idleTimeoutCanceller.Ping();
                 if (cancellationToken.IsCancellationRequested) break;
                 if (predicate(output)) return true;
             }
