@@ -14,7 +14,7 @@ if (options.SpawnChildProcess)
         Arguments = "testee.dll -n", // Never exit until enter any key
         WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
     });
-    Console.WriteLine($"Child Proecess Id: {childProcess?.Id}");
+    Console.WriteLine($"Child Process Id: {childProcess?.Id}");
 }
 
 if (options.InfiniteCounter)

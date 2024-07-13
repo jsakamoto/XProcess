@@ -159,18 +159,18 @@ public class XProcessTests
 
     private async ValueTask<(XProcess ParentProcess, Process ChildProcess)> StartTesteeWithChildProcessAsync(XProcessTerminate whenDisposing)
     {
-        var parentProcess = XProcess.Start("dotnet", "testee.dll -n -s", baseDir, options =>
+        var parentProcess = XProcess.Start("dotnet", "testee.dll -n --spawnchildprocess", baseDir, options =>
         {
             options.WhenDisposing = whenDisposing;
         });
 
-        var chidlProcessId = -1;
+        var childProcessId = -1;
         var result = await parentProcess.WaitForOutputAsync(output =>
         {
-            var m = Regex.Match(output, "Child Proecess Id: (?<pid>\\d+)");
+            var m = Regex.Match(output, "Child Process Id: (?<pid>\\d+)");
             if (m.Success)
             {
-                chidlProcessId = int.Parse(m.Groups["pid"].Value);
+                childProcessId = int.Parse(m.Groups["pid"].Value);
                 return true;
             }
             return false;
@@ -178,14 +178,14 @@ public class XProcessTests
         millsecondsTimeout: 5000);
         result.IsTrue();
 
-        var childProcess = Process.GetProcessById(chidlProcessId);
-        if (childProcess == null) throw new Exception($"The child process (pid: {chidlProcessId}) was not found.");
+        var childProcess = Process.GetProcessById(childProcessId);
+        if (childProcess == null) throw new Exception($"The child process (pid: {childProcessId}) was not found.");
 
         return (parentProcess, childProcess);
     }
 
     [Test, Parallelizable(ParallelScope.Self)]
-    public async Task Terminate_when_Diposing_with_ChildProcess_Test()
+    public async Task Terminate_when_Disposing_with_ChildProcess_Test()
     {
         // Given
         var processes = await this.StartTesteeWithChildProcessAsync(whenDisposing: XProcessTerminate.EntireProcessTree);
@@ -200,7 +200,7 @@ public class XProcessTests
         // Then
         try
         {
-            Task.WaitAll(new[] { childProcess.WaitForExitAsync() }, millisecondsTimeout: 5000);
+            Task.WaitAll([childProcess.WaitForExitAsync()], millisecondsTimeout: 5000);
             childProcess.HasExited.IsTrue();
 
             Assert.Throws<ArgumentException>(() => Process.GetProcessById(parentProcessId));
@@ -210,7 +210,7 @@ public class XProcessTests
     }
 
     [Test, Parallelizable(ParallelScope.Self)]
-    public async Task Terminate_when_Diposing_without_ChildProcess_Test()
+    public async Task Terminate_when_Disposing_without_ChildProcess_Test()
     {
         // Given
         var processes = await this.StartTesteeWithChildProcessAsync(whenDisposing: XProcessTerminate.Yes);
