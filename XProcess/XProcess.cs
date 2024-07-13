@@ -68,6 +68,7 @@ namespace Toolbelt.Diagnostics
         {
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
+            foreach (var envVar in options.EnvironmentVariables) startInfo.Environment[envVar.Key] = envVar.Value;
 
             this.Options = options;
 

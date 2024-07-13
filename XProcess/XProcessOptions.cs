@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Toolbelt.Diagnostics
@@ -22,5 +23,10 @@ namespace Toolbelt.Diagnostics
         /// Get or set how to terminate the process or terminate its entire process tree or nothing when the process object is disposing.
         /// </summary>
         public XProcessTerminate WhenDisposing { get; set; } = XProcessTerminate.Yes;
+
+        /// <summary>
+        /// The environment variables that apply to this process and its child processes.
+        /// </summary>
+        public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
     }
 }

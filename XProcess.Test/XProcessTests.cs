@@ -267,4 +267,15 @@ public class XProcessTests
             catch { }
         }
     }
+
+    [Test]
+    public async Task Options_EnvironmentVariables_Test()
+    {
+        var envVar = Guid.NewGuid().ToString("N");
+        using var process = await XProcess.Start("dotnet", "testee.dll --showenvvar USERNAME", baseDir, options =>
+        {
+            options.EnvironmentVariables["USERNAME"] = envVar;
+        }).WaitForExitAsync();
+        process.Output.Is($"USERNAME: \"{envVar}\"");
+    }
 }

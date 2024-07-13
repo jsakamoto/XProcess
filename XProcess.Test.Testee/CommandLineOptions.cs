@@ -11,4 +11,6 @@ public class CommandLineOptions
     public bool SpawnChildProcess { get; set; }
 
     public OutputMode OutputMode { get; set; } = OutputMode.MixBoth;
+
+    public string? ShowEnvVar { get; set; }
 }

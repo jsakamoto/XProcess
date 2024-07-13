@@ -17,7 +17,12 @@ if (options.SpawnChildProcess)
     Console.WriteLine($"Child Process Id: {childProcess?.Id}");
 }
 
-if (options.InfiniteCounter)
+if (!string.IsNullOrEmpty(options.ShowEnvVar))
+{
+    var envVar = Environment.GetEnvironmentVariable(options.ShowEnvVar);
+    WriteLine($"{options.ShowEnvVar}: \"{envVar}\"");
+}
+else if (options.InfiniteCounter)
 {
     InfiniteCounter();
 }
