@@ -13,12 +13,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.3.1.1</Version>
+    <Version>1.4.0</Version>
     <Authors>J.Sakamoto</Authors>
     <Company>J.Sakamoto</Company>
     <Product>Invoke an external process, and expose its output as an async stream in C# 8.0.</Product>
     <Description>Invoke an external process, and expose its output as an async stream in C# 8.0.</Description>
-    <Copyright>Copyright 2021-2023 J.Sakamoto, Mozilla Public License 2.0</Copyright>
+    <Copyright>Copyright 2021-2024 J.Sakamoto, Mozilla Public License 2.0</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/jsakamoto/XProcess</PackageProjectUrl>
     <PackageReleaseNotes>(Please write the package release notes in "RELEASE-NOTES.txt".)</PackageReleaseNotes>
