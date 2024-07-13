@@ -235,7 +235,7 @@ public class XProcessTests
     }
 
     [Test, Parallelizable(ParallelScope.Self)]
-    public async Task Dont_Terminate_when_Diposing_Test()
+    public async Task DoNot_Terminate_when_Disposing_Test()
     {
         // Given
         var processes = await this.StartTesteeWithChildProcessAsync(whenDisposing: XProcessTerminate.No);
