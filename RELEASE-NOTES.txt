@@ -1,4 +1,7 @@
-﻿v.1.4.0
+﻿v.1.4.1
+- Update: Added support for .NET 10 
+
+v.1.4.0
 - Improved: Add new flexible wait options for the WaitForOutputAsync() method
 - Improved: add a new option to apply environment variables.
 
