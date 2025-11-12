@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/README/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="RELEASE-NOTES.txt" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/unit-tests.yml" />
+  </Folder>
+  <Project Path="XProcess.Test.Testee/XProcess.Test.Testee.csproj" />
+  <Project Path="XProcess.Test/XProcess.Test.csproj" />
+  <Project Path="XProcess/XProcess.csproj" />
+</Solution>
