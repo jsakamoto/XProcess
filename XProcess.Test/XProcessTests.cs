@@ -98,6 +98,7 @@ public class XProcessTests
         for (var i = 0; i < 20; i++)
         {
             using var process = XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir);
+            process.Process.EnableRaisingEvents = false;
             process.Process.WaitForExit(5000).IsTrue();
             process.Dispose();
             await process.WaitForExitAsync();
