@@ -8,6 +8,8 @@ public class CommandLineOptions
 
     public int CounterDelay { get; set; }
 
+    public int BurstCount { get; set; }
+
     public bool NeverExitUntilEnterAnyKey { get; set; }
 
     public bool SpawnChildProcess { get; set; }

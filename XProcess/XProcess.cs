@@ -81,8 +81,7 @@ namespace Toolbelt.Diagnostics
 
             this.Process = new Process
             {
-                StartInfo = startInfo,
-                EnableRaisingEvents = true
+                StartInfo = startInfo
             };
             this.Process.Exited += this.Process_Exited;
             this.Process.OutputDataReceived += this.Process_OutputDataReceived;
@@ -91,6 +90,7 @@ namespace Toolbelt.Diagnostics
             this.Process.Start();
             this.Process.BeginOutputReadLine();
             this.Process.BeginErrorReadLine();
+            this.Process.EnableRaisingEvents = true;
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -115,6 +115,7 @@ namespace Toolbelt.Diagnostics
         private void Process_Exited(object? sender, EventArgs e)
         {
             var process = (Process)sender!;
+            process.WaitForExit();
             this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
             lock (this.CancellerByExit) if (!this.CancellerByExit.IsCancellationRequested) this.CancellerByExit.Cancel();
         }
@@ -261,6 +262,7 @@ namespace Toolbelt.Diagnostics
             }
 
             this.Process.Exited -= this.Process_Exited;
+            if (this.Process.HasExited) this.Process.WaitForExit();
             this.Process.OutputDataReceived -= this.Process_OutputDataReceived;
             this.Process.ErrorDataReceived -= this.Process_ErrorDataReceived;
 

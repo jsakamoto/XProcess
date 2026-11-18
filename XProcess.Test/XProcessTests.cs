@@ -58,6 +58,57 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task WaitForExitAsync_DrainsOutput_Test()
+    {
+        var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+        for (var i = 0; i < 20; i++)
+        {
+            using var process = await XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir).WaitForExitAsync();
+            process.StdOutput.Is(string.Join("\n", lines.Where((_, index) => index % 2 == 0)));
+            process.StdError.Is(string.Join("\n", lines.Where((_, index) => index % 2 != 0)));
+            process.Output.Split('\n').OrderBy(int.Parse).Is(lines);
+        }
+    }
+
+    [TestCase(OutputMode.MixBoth)]
+    [TestCase(OutputMode.StdOut)]
+    [TestCase(OutputMode.StdErr)]
+    public async Task GetOutputAsyncStream_DrainsOutput_Test(OutputMode outputMode)
+    {
+        var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+        for (var i = 0; i < 10; i++)
+        {
+            using var process = XProcess.Start("dotnet", $"testee.dll --burstcount 100 --outputmode {outputMode.ToString().ToLowerInvariant()}", baseDir);
+            var stream = outputMode switch
+            {
+                OutputMode.StdOut => process.GetStdOutAsyncStream(),
+                OutputMode.StdErr => process.GetStdErrAsyncStream(),
+                _ => process.GetOutputAsyncStream()
+            };
+            var outputs = new List<string>();
+            await foreach (var output in stream) outputs.Add(output);
+            outputs.OrderBy(int.Parse).Is(lines);
+        }
+    }
+
+    [Test]
+    public async Task Dispose_AfterExit_DrainsOutput_Test()
+    {
+        var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+        for (var i = 0; i < 20; i++)
+        {
+            using var process = XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir);
+            process.Process.EnableRaisingEvents = false;
+            process.Process.WaitForExit(5000).IsTrue();
+            process.Dispose();
+            await process.WaitForExitAsync();
+            process.StdOutput.Is(string.Join("\n", lines.Where((_, index) => index % 2 == 0)));
+            process.StdError.Is(string.Join("\n", lines.Where((_, index) => index % 2 != 0)));
+            process.Output.Split('\n').OrderBy(int.Parse).Is(lines);
+        }
+    }
+
+    [Test]
     public async Task GetOutputAsyncStream_Test()
     {
         using var process = XProcess.Start("dotnet", "testee.dll", baseDir);
