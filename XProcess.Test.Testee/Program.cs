@@ -26,6 +26,10 @@ else if (options.InfiniteCounter)
 {
     InfiniteCounter();
 }
+else if (options.BurstCount > 0)
+{
+    for (var i = 0; i < options.BurstCount; i++) WriteLine(i.ToString());
+}
 else
 {
     HelloWorld();
