@@ -35,6 +35,7 @@ All behavior lives in `XProcess/XProcess.cs`; the other files in `XProcess/` are
 - `XProcess.Test` (NUnit + ChainingAssertion, run through MTP) does not mock processes. It launches the real helper app `XProcess.Test.Testee` as `dotnet testee.dll ...` with the test output folder as the working directory; the project reference copies `testee.dll` there.
 - The testee's behavior is controlled by command-line switches parsed by CommandlineSwitchParser from `XProcess.Test.Testee/CommandLineOptions.cs` (for example `--exitcode 123`, `--burstcount 100`, `--infinitecounter`, `-n` to wait for a key press). To test a new scenario, add a property there and handle it in `Program.cs`.
 - In the default `MixBoth` output mode the testee alternates stdout and stderr on every line, and many assertions depend on that exact split (for example `StdOutput` is `"Hello,\nNice to"`).
+- `XProcess.Test/WarmUp.cs` starts one throwaway process before all tests. On Linux, under NUnit + Microsoft.Testing.Platform, the first async read of a redirected pipe in the test host fails with a spurious `SocketException` (99), and `Process` silently treats it as EOF, so one whole stream of that process is lost (dotnet/runtime#131915). Do not remove it while that issue is open.
 - Many tests are timing-based (sleeps, timeouts, repeated runs to catch output-draining races), so a flaky failure may point to a real race in `XProcess.cs`.
 
 ## Releasing
