@@ -109,6 +109,48 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task GetOutputAsyncStream_SlowConsumer_DrainsOutput_Test()
+    {
+        var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+        using var process = XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir);
+        var outputs = new List<string>();
+        await foreach (var output in process.GetOutputAsyncStream())
+        {
+            outputs.Add(output);
+            await Task.Delay(10);
+        }
+        outputs.OrderBy(int.Parse).Is(lines);
+    }
+
+    [Test]
+    public async Task GetOutputAsyncStream_AfterExited_Test()
+    {
+        var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+        using var process = await XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir).WaitForExitAsync();
+        // Let the exit handling that resumed this method inline run to the end first.
+        await Task.Delay(100);
+        var outputs = new List<string>();
+        await foreach (var output in process.GetOutputAsyncStream()) outputs.Add(output);
+        outputs.OrderBy(int.Parse).Is(lines);
+    }
+
+    [Test]
+    public async Task Dispose_in_OutputAsyncStream_AfterExit_Test()
+    {
+        using var process = XProcess.Start("dotnet", "testee.dll --burstcount 100", baseDir);
+        var consumerTask = Task.Run(async () =>
+        {
+            await foreach (var _ in process.GetOutputAsyncStream())
+            {
+                process.Process.WaitForExit(5000).IsTrue();
+                process.Dispose();
+                break;
+            }
+        });
+        await consumerTask.WaitAsync(TimeSpan.FromSeconds(10));
+    }
+
+    [Test]
     public async Task GetOutputAsyncStream_Test()
     {
         using var process = XProcess.Start("dotnet", "testee.dll", baseDir);

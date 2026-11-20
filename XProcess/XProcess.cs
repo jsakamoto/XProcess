@@ -19,8 +19,6 @@ namespace Toolbelt.Diagnostics
 
         private Channel<XProcessOutputFragment> OutputChannel { get; }
 
-        private CancellationTokenSource CancellerByExit { get; } = new CancellationTokenSource();
-
         private bool Disposed { get; set; }
 
         public Process Process { get; }
@@ -76,7 +74,8 @@ namespace Toolbelt.Diagnostics
             {
                 SingleReader = false,
                 SingleWriter = true,
-                AllowSynchronousContinuations = true
+                // Keep the stream consumers' code off the Process class's output reader threads.
+                AllowSynchronousContinuations = false
             });
 
             this.Process = new Process
@@ -117,7 +116,7 @@ namespace Toolbelt.Diagnostics
             var process = (Process)sender!;
             process.WaitForExit();
             this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
-            lock (this.CancellerByExit) if (!this.CancellerByExit.IsCancellationRequested) this.CancellerByExit.Cancel();
+            this.OutputChannel.Writer.TryComplete();
         }
 
         private string GetOutputString(Func<XProcessOutputFragment, bool> predicate)
@@ -162,16 +161,21 @@ namespace Toolbelt.Diagnostics
         public async IAsyncEnumerable<XProcessOutputFragment> GetOutputFragmentAsyncStream([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var reader = this.OutputChannel.Reader;
-            var ctoken = CancellationTokenSource.CreateLinkedTokenSource(this.CancellerByExit.Token, cancellationToken).Token;
             for (; ; )
             {
-                var fragment = default(XProcessOutputFragment);
+                if (cancellationToken.IsCancellationRequested) yield break;
+                if (reader.TryRead(out var fragment))
+                {
+                    yield return fragment;
+                    continue;
+                }
+
+                // The channel is completed only after the process exits and its output is fully drained.
                 try
                 {
-                    fragment = await reader.ReadAsync(ctoken);
+                    if (!await reader.WaitToReadAsync(cancellationToken)) yield break;
                 }
                 catch (OperationCanceledException) { yield break; }
-                yield return fragment;
             }
         }
 
@@ -280,7 +284,7 @@ namespace Toolbelt.Diagnostics
                 catch { }
             }
             this.ExitCodeTaskSource.TrySetResult(this.Process.HasExited ? this.Process.ExitCode : 0);
-            lock (this.CancellerByExit) if (!this.CancellerByExit.IsCancellationRequested) this.CancellerByExit.Cancel();
+            this.OutputChannel.Writer.TryComplete();
             this.Process.Dispose();
         }
     }
