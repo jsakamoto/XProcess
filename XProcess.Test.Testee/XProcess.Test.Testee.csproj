@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <RootNamespace>Toolbelt.Diagnostics.Test</RootNamespace>
     <AssemblyName>testee</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>

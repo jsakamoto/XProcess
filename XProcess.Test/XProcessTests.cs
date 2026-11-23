@@ -28,9 +28,9 @@ public class XProcessTests
     }
 
     [Test]
-    public void Start_when_file_not_found_Test()
+    public async Task Start_when_file_not_found_Test()
     {
-        Assert.ThrowsAsync<Win32Exception>(async () =>
+        await Assert.ThrowsAsync<Win32Exception>(async () =>
         {
             using var process = await XProcess.Start(Path.Combine(".", Guid.NewGuid().ToString("N")) + ".exe").WaitForExitAsync();
         });
