@@ -28,7 +28,7 @@ All behavior lives in `XProcess/XProcess.cs`; the other files in `XProcess/` are
 - The channel uses `AllowSynchronousContinuations = false` on purpose. With `true`, a consumer's `await foreach` body runs on the `Process` class's output reader thread, and calling `Dispose()` there deadlocks because `WaitForExit()` waits for that same thread.
 - `WaitForOutputAsync()` first tests the predicate against all buffered output joined with `\n` (and clears the buffer), then tests each new line from the stream. Idle timeout is implemented by `XProcessIdleTimeoutCanceller`, a timer reset on every received line.
 - `Dispose()` kills the process according to `XProcessOptions.WhenDisposing`. Killing the entire process tree uses `#if NET5_0_OR_GREATER`, because the library also targets `netstandard2.1`.
-- The library targets `netstandard2.1` and `net6.0` through `net11.0`, with nullable warnings treated as errors. Use only APIs available on `netstandard2.1`, or guard them with `#if`.
+- The library targets `netstandard2.1` and `net6.0` through `net11.0`, with nullable warnings treated as errors. Use only APIs available on `netstandard2.1`, or guard them with `#if`. The `System.Threading.Channels` package is referenced only for `netstandard2.1`, because the other targets ship it in the shared framework.
 
 ## Tests
 

@@ -35,7 +35,7 @@
     <None Include="..\README.md" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
     <PackageReference Include="System.Threading.Channels" Version="4.7.1"/>
   </ItemGroup>
 
