@@ -275,6 +275,15 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task GetAndClearBufferedStdOut_Test()
+    {
+        using var process = await XProcess.Start("dotnet", "testee.dll", baseDir).WaitForExitAsync();
+        process.GetAndClearBufferedStdOut().Is("Hello,\nNice to");
+        process.Output.Is("everyone.\nmeet you.");
+        process.GetAndClearBufferedStdOut().Is("");
+    }
+
+    [Test]
     public async Task WaitForOutputAsync_Test()
     {
         using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);

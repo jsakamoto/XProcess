@@ -255,10 +255,9 @@ namespace Toolbelt.Diagnostics
             {
                 predicate ??= _ => true;
                 var fragments = this.OutputBuffer.Where(predicate).ToArray();
-                foreach (var fragment in fragments)
-                {
-                    this.OutputBuffer.Remove(fragment);
-                }
+                // Remove in one pass, because List.Remove() for each fragment takes O(n^2) under the lock.
+                var fragmentSet = new HashSet<XProcessOutputFragment>(fragments);
+                this.OutputBuffer.RemoveAll(fragmentSet.Contains);
                 return fragments;
             }
         }
