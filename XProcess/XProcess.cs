@@ -13,13 +13,20 @@ namespace Toolbelt.Diagnostics
     {
         private XProcessOptions Options { get; }
 
-        private TaskCompletionSource<int> ExitCodeTaskSource { get; } = new TaskCompletionSource<int>();
+        // Keep the callers' code after WaitForExitAsync() off the output reading flow, so that their Dispose() call does not wait for itself.
+        private TaskCompletionSource<int> ExitCodeTaskSource { get; } = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private List<XProcessOutputFragment> OutputBuffer { get; } = new List<XProcessOutputFragment>();
 
         private Channel<XProcessOutputFragment> OutputChannel { get; }
 
         private bool Disposed { get; set; }
+
+#if NET11_0_OR_GREATER
+        private CancellationTokenSource ReadOutputCancellation { get; } = new CancellationTokenSource();
+
+        private Task ReadOutputTask { get; }
+#endif
 
         public Process Process { get; }
 
@@ -82,6 +89,30 @@ namespace Toolbelt.Diagnostics
             {
                 StartInfo = startInfo
             };
+#if NET11_0_OR_GREATER
+            this.Process.Start();
+            this.ReadOutputTask = this.ReadOutputAsync();
+        }
+
+        private async Task ReadOutputAsync()
+        {
+            try
+            {
+                var cancellationToken = this.ReadOutputCancellation.Token;
+                await foreach (var line in this.Process.ReadAllLinesAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    this.OnOutputReceived(line.StandardError ? XProcessOutputType.StdErr : XProcessOutputType.StdOut, line.Content);
+                }
+                await this.Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+                this.ExitCodeTaskSource.TrySetResult(this.Process.ExitCode);
+            }
+            catch (OperationCanceledException) { }
+            finally
+            {
+                this.OutputChannel.Writer.TryComplete();
+            }
+        }
+#else
             this.Process.Exited += this.Process_Exited;
             this.Process.OutputDataReceived += this.Process_OutputDataReceived;
             this.Process.ErrorDataReceived += this.Process_ErrorDataReceived;
@@ -102,6 +133,15 @@ namespace Toolbelt.Diagnostics
             this.OnOutputReceived(XProcessOutputType.StdErr, e.Data);
         }
 
+        private void Process_Exited(object? sender, EventArgs e)
+        {
+            var process = (Process)sender!;
+            process.WaitForExit();
+            this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
+            this.OutputChannel.Writer.TryComplete();
+        }
+#endif
+
         private void OnOutputReceived(XProcessOutputType outputType, string? data)
         {
             if (data == null) return;
@@ -109,14 +149,6 @@ namespace Toolbelt.Diagnostics
             var fragment = new XProcessOutputFragment(outputType, data);
             lock (this.OutputBuffer) this.OutputBuffer.Add(fragment);
             this.OutputChannel.Writer.TryWrite(fragment);
-        }
-
-        private void Process_Exited(object? sender, EventArgs e)
-        {
-            var process = (Process)sender!;
-            process.WaitForExit();
-            this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
-            this.OutputChannel.Writer.TryComplete();
         }
 
         private string GetOutputString(Func<XProcessOutputFragment, bool> predicate)
@@ -265,10 +297,16 @@ namespace Toolbelt.Diagnostics
                 this.Disposed = true;
             }
 
+#if NET11_0_OR_GREATER
+            // Read the output to the end only if the process has already exited.
+            if (!this.Process.HasExited) this.ReadOutputCancellation.Cancel();
+            try { this.ReadOutputTask.Wait(); } catch { }
+#else
             this.Process.Exited -= this.Process_Exited;
             if (this.Process.HasExited) this.Process.WaitForExit();
             this.Process.OutputDataReceived -= this.Process_OutputDataReceived;
             this.Process.ErrorDataReceived -= this.Process_ErrorDataReceived;
+#endif
 
             if (this.Options.WhenDisposing != XProcessTerminate.No)
             {
@@ -286,6 +324,9 @@ namespace Toolbelt.Diagnostics
             this.ExitCodeTaskSource.TrySetResult(this.Process.HasExited ? this.Process.ExitCode : 0);
             this.OutputChannel.Writer.TryComplete();
             this.Process.Dispose();
+#if NET11_0_OR_GREATER
+            this.ReadOutputCancellation.Dispose();
+#endif
         }
     }
 }
