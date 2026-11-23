@@ -111,6 +111,11 @@ namespace Toolbelt.Diagnostics
                 this.ExitCodeTaskSource.TrySetResult(this.Process.ExitCode);
             }
             catch (OperationCanceledException) { }
+            // An error caused by the cancellation from Dispose() is not an error for the callers.
+            catch (Exception ex) when (!this.ReadOutputCancellation.IsCancellationRequested)
+            {
+                this.ExitCodeTaskSource.TrySetException(ex);
+            }
             finally
             {
                 this.OutputChannel.Writer.TryComplete();
