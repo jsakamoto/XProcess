@@ -17,7 +17,7 @@ dotnet test --project XProcess.Test --filter "Name=ExitCode_Test"   # run a sing
 dotnet build XProcess -c Release                                # build and pack the .nupkg into _dist/
 ```
 
-CI (`.github/workflows/unit-tests.yml`) runs the tests on ubuntu-latest with .NET 11 on every push to `master`.
+CI (`.github/workflows/unit-tests.yml`) runs the tests on ubuntu-latest with .NET 10 and .NET 11 on every push to `master`.
 
 ## Architecture
 
