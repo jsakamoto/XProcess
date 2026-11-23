@@ -18,7 +18,7 @@
     <Company>J.Sakamoto</Company>
     <Product>Invoke an external process, and expose its output as an async stream in C# 8.0.</Product>
     <Description>Invoke an external process, and expose its output as an async stream in C# 8.0.</Description>
-    <Copyright>Copyright 2021-2025 J.Sakamoto, Mozilla Public License 2.0</Copyright>
+    <Copyright>Copyright 2021-2026 J.Sakamoto, Mozilla Public License 2.0</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/jsakamoto/XProcess</PackageProjectUrl>
     <PackageReleaseNotes>(Please write the package release notes in "RELEASE-NOTES.txt".)</PackageReleaseNotes>
