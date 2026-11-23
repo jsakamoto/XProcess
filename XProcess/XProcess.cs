@@ -20,6 +20,10 @@ namespace Toolbelt.Diagnostics
 
         private Channel<XProcessOutputFragment> OutputChannel { get; }
 
+        private long LastReceivedSequence { get; set; }
+
+        private long LastJudgedSequence { get; set; }
+
         private bool Disposed { get; set; }
 
 #if NET11_0_OR_GREATER
@@ -147,8 +151,13 @@ namespace Toolbelt.Diagnostics
             if (data == null) return;
 
             var fragment = new XProcessOutputFragment(outputType, data);
-            lock (this.OutputBuffer) this.OutputBuffer.Add(fragment);
-            this.OutputChannel.Writer.TryWrite(fragment);
+            // Write both under one lock, so the buffer and the channel hold the lines in sequence order.
+            lock (this.OutputBuffer)
+            {
+                fragment.Sequence = ++this.LastReceivedSequence;
+                this.OutputBuffer.Add(fragment);
+                this.OutputChannel.Writer.TryWrite(fragment);
+            }
         }
 
         private string GetOutputString(Func<XProcessOutputFragment, bool> predicate)
@@ -277,14 +286,18 @@ namespace Toolbelt.Diagnostics
             var processCancellationToken = options.ProcessTimeout > 0 ? new CancellationTokenSource(options.ProcessTimeout).Token : CancellationToken.None;
             var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(idleTimeoutCanceller.Token, processCancellationToken, options.CancellationToken).Token;
 
-            var bufferedOutput = this.GetAndClearBufferedOutput();
-            if (predicate(bufferedOutput)) return true;
+            var unjudgedFragments = default(XProcessOutputFragment[]);
+            lock (this.OutputBuffer) unjudgedFragments = this.OutputBuffer.Where(f => f.Sequence > this.LastJudgedSequence).ToArray();
+            // Judging the joined text does not mark its lines as judged, so the loop below still judges each of them.
+            if (predicate(string.Join("\n", unjudgedFragments.Select(f => f.Data)))) return true;
 
-            await foreach (var output in this.GetOutputAsyncStream().WithCancellation(cancellationToken))
+            await foreach (var fragment in this.GetOutputFragmentAsyncStream().WithCancellation(cancellationToken))
             {
                 idleTimeoutCanceller.Ping();
                 if (cancellationToken.IsCancellationRequested) break;
-                if (predicate(output)) return true;
+                if (fragment.Sequence <= this.LastJudgedSequence) continue;
+                this.LastJudgedSequence = fragment.Sequence;
+                if (predicate(fragment.Data)) return true;
             }
             return false;
         }

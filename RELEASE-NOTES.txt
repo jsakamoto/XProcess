@@ -2,6 +2,8 @@
 - Fix: Resolved an issue where the Output, StdOutput, and StdError properties could be incomplete right after WaitForExitAsync() completed (Issue #1).
 - Fix: Resolved an issue where output async streams could miss the last lines of a process.
 - Improve: Output async streams started after the process exited now return the lines not yet read, instead of nothing.
+- Fix: Resolved an issue where WaitForOutputAsync() could return true at once, matching a line that an earlier WaitForOutputAsync() call had already checked.
+- Improve: WaitForOutputAsync() no longer clears the buffered output, so the Output, StdOutput, and StdError properties keep all lines after the call.
 - Update: Added support for .NET 11
 
 v.1.4.1

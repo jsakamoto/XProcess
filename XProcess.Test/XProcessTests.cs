@@ -243,6 +243,40 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task WaitForOutputAsync_DoesNot_Match_JudgedOutput_Again_Test()
+    {
+        using var process = XProcess.Start("dotnet", "testee.dll -i", baseDir);
+        var found1 = await process.WaitForOutputAsync(str => str == "3", millsecondsTimeout: 5000);
+        found1.IsTrue();
+
+        // The counter never outputs "3" again, so the second wait must time out.
+        var found2 = await process.WaitForOutputAsync(str => str.Split('\n').Contains("3"), millsecondsTimeout: 1000);
+        found2.IsFalse();
+    }
+
+    [Test]
+    public async Task WaitForOutputAsync_Judges_NotYetJudgedOutput_Test()
+    {
+        using var process = XProcess.Start("dotnet", "testee.dll", baseDir);
+        await process.WaitForExitAsync();
+
+        (await process.WaitForOutputAsync(str => str == "everyone.", millsecondsTimeout: 3000)).IsTrue();
+        (await process.WaitForOutputAsync(str => str == "meet you.", millsecondsTimeout: 3000)).IsTrue();
+        (await process.WaitForOutputAsync(str => str.Contains("Hello,"), millsecondsTimeout: 3000)).IsFalse();
+    }
+
+    [Test]
+    public async Task WaitForOutputAsync_Keeps_BufferedOutput_Test()
+    {
+        using var process = XProcess.Start("dotnet", "testee.dll", baseDir);
+        await process.WaitForExitAsync();
+
+        var found = await process.WaitForOutputAsync(str => str == "Nice to", millsecondsTimeout: 3000);
+        found.IsTrue();
+        process.Output.Is("Hello,\neveryone.\nNice to\nmeet you.");
+    }
+
+    [Test]
     public async Task WaitForOutputAsync_TimeOuted_Test()
     {
         using var process = XProcess.Start("dotnet", "testee.dll -n", baseDir);

@@ -6,6 +6,8 @@
 
         public string Data { get; }
 
+        internal long Sequence { get; set; }
+
         public XProcessOutputFragment(XProcessOutputType type, string data)
         {
             Type = type;
