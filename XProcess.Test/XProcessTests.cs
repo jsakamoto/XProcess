@@ -28,6 +28,34 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task ExitCode_after_Dispose_without_Terminate_is_null_Test()
+    {
+        var process = XProcess.Start("dotnet", "testee.dll --infinitecounter", baseDir, options => options.WhenDisposing = XProcessTerminate.No);
+        var processId = process.Process.Id;
+        try
+        {
+            process.Dispose();
+            await process.WaitForExitAsync();
+            process.ExitCode.IsNull();
+        }
+        finally
+        {
+            try { Process.GetProcessById(processId).Kill(); } catch { }
+        }
+    }
+
+    [Test]
+    public async Task ExitCode_after_Dispose_with_Terminate_is_not_zero_Test()
+    {
+        var process = XProcess.Start("dotnet", "testee.dll --infinitecounter", baseDir);
+        await process.WaitForOutputAsync(str => str == "1", millsecondsTimeout: 5000);
+        process.Dispose();
+        await process.WaitForExitAsync();
+        process.ExitCode.IsNotNull();
+        process.ExitCode.IsNot(0);
+    }
+
+    [Test]
     public async Task Start_when_file_not_found_Test()
     {
         await Assert.ThrowsAsync<Win32Exception>(async () =>

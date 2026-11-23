@@ -14,7 +14,8 @@ namespace Toolbelt.Diagnostics
         private XProcessOptions Options { get; }
 
         // Keep the callers' code after WaitForExitAsync() off the output reading flow, so that their Dispose() call does not wait for itself.
-        private TaskCompletionSource<int> ExitCodeTaskSource { get; } = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        // Holds null when Dispose() completes it before the process exits.
+        private TaskCompletionSource<int?> ExitCodeTaskSource { get; } = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private List<XProcessOutputFragment> OutputBuffer { get; } = new List<XProcessOutputFragment>();
 
@@ -355,10 +356,12 @@ namespace Toolbelt.Diagnostics
 #else
                     this.Process.Kill();
 #endif
+                    // Kill() does not wait for the exit, so wait a moment to get the real exit code.
+                    this.Process.WaitForExit(1000);
                 }
                 catch { }
             }
-            this.ExitCodeTaskSource.TrySetResult(this.Process.HasExited ? this.Process.ExitCode : 0);
+            this.ExitCodeTaskSource.TrySetResult(this.Process.HasExited ? this.Process.ExitCode : null);
             this.OutputChannel.Writer.TryComplete();
             this.Process.Dispose();
 #if NET11_0_OR_GREATER
