@@ -282,9 +282,10 @@ namespace Toolbelt.Diagnostics
             var options = new XProcessWaitOptions();
             configure(options);
 
-            var idleTimeoutCanceller = new XProcessIdleTimeoutCanceller(options.IdleTimeout);
-            var processCancellationToken = options.ProcessTimeout > 0 ? new CancellationTokenSource(options.ProcessTimeout).Token : CancellationToken.None;
-            var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(idleTimeoutCanceller.Token, processCancellationToken, options.CancellationToken).Token;
+            using var idleTimeoutCanceller = new XProcessIdleTimeoutCanceller(options.IdleTimeout);
+            using var processTimeoutSource = options.ProcessTimeout > 0 ? new CancellationTokenSource(options.ProcessTimeout) : null;
+            using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(idleTimeoutCanceller.Token, processTimeoutSource?.Token ?? CancellationToken.None, options.CancellationToken);
+            var cancellationToken = linkedCancellationSource.Token;
 
             var unjudgedFragments = default(XProcessOutputFragment[]);
             lock (this.OutputBuffer) unjudgedFragments = this.OutputBuffer.Where(f => f.Sequence > this.LastJudgedSequence).ToArray();
