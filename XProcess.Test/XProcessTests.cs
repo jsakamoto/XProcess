@@ -109,6 +109,36 @@ public class XProcessTests
     }
 
     [Test]
+    public async Task Dispose_AfterExit_StopsWaiting_AtDrainTimeout_Test()
+    {
+        // Given: the testee exits, but its child process keeps running and holds the output pipe.
+        var process = XProcess.Start("dotnet", "testee.dll --spawnchildprocess", baseDir, options => options.DrainTimeoutWhenDisposing = 500);
+        var childProcessId = -1;
+        try
+        {
+            var found = await process.WaitForOutputAsync(output =>
+            {
+                var m = Regex.Match(output, "Child Process Id: (?<pid>\\d+)");
+                if (m.Success) childProcessId = int.Parse(m.Groups["pid"].Value);
+                return m.Success;
+            }, millsecondsTimeout: 10000);
+            found.IsTrue();
+            while (!process.Process.HasExited) await Task.Delay(50);
+
+            // When
+            var disposeTask = Task.Run(process.Dispose);
+            var completedTask = await Task.WhenAny(disposeTask, Task.Delay(5000));
+
+            // Then
+            (completedTask == disposeTask).IsTrue();
+        }
+        finally
+        {
+            if (childProcessId != -1) try { Process.GetProcessById(childProcessId).Kill(); } catch { }
+        }
+    }
+
+    [Test]
     public async Task GetOutputAsyncStream_SlowConsumer_DrainsOutput_Test()
     {
         var lines = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();

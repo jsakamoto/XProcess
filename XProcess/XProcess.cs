@@ -139,10 +139,18 @@ namespace Toolbelt.Diagnostics
 
         private void Process_Exited(object? sender, EventArgs e)
         {
+            // Process.Dispose() waits for this handler to return, so wait for the output to end on another thread.
             var process = (Process)sender!;
-            process.WaitForExit();
-            this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
-            this.OutputChannel.Writer.TryComplete();
+            Task.Run(() =>
+            {
+                try
+                {
+                    process.WaitForExit();
+                    this.ExitCodeTaskSource.TrySetResult(process.ExitCode);
+                }
+                catch { } // Dispose() may have disposed the process after its drain timeout.
+                this.OutputChannel.Writer.TryComplete();
+            });
         }
 #endif
 
@@ -314,10 +322,20 @@ namespace Toolbelt.Diagnostics
 #if NET11_0_OR_GREATER
             // Read the output to the end only if the process has already exited.
             if (!this.Process.HasExited) this.ReadOutputCancellation.Cancel();
-            try { this.ReadOutputTask.Wait(); } catch { }
+            try
+            {
+                // A child process that holds the output pipe can keep the output from ending.
+                if (!this.ReadOutputTask.Wait(this.Options.DrainTimeoutWhenDisposing))
+                {
+                    this.ReadOutputCancellation.Cancel();
+                    this.ReadOutputTask.Wait();
+                }
+            }
+            catch { }
 #else
             this.Process.Exited -= this.Process_Exited;
-            if (this.Process.HasExited) this.Process.WaitForExit();
+            // The parameterless WaitForExit() is the one that waits for the output to end, so run it on another thread to bound the wait.
+            if (this.Process.HasExited) Task.Run(this.Process.WaitForExit).Wait(this.Options.DrainTimeoutWhenDisposing);
             this.Process.OutputDataReceived -= this.Process_OutputDataReceived;
             this.Process.ErrorDataReceived -= this.Process_ErrorDataReceived;
 #endif

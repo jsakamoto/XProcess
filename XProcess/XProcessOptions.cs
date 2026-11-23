@@ -25,6 +25,11 @@ namespace Toolbelt.Diagnostics
         public XProcessTerminate WhenDisposing { get; set; } = XProcessTerminate.Yes;
 
         /// <summary>
+        /// Get or set the milliseconds to wait for the rest of the output when the process object is disposing after the process has exited. Set -1 to wait without a limit, or 0 not to wait.
+        /// </summary>
+        public int DrainTimeoutWhenDisposing { get; set; } = 5000;
+
+        /// <summary>
         /// The environment variables that apply to this process and its child processes.
         /// </summary>
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
