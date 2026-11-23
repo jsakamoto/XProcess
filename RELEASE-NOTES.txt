@@ -5,6 +5,7 @@
 - Fix: Resolved an issue where WaitForOutputAsync() could return true at once, matching a line that an earlier WaitForOutputAsync() call had already checked.
 - Improve: WaitForOutputAsync() no longer clears the buffered output, so the Output, StdOutput, and StdError properties keep all lines after the call.
 - Feature: Added the DrainTimeoutWhenDisposing option. Dispose() now waits for the rest of the output for up to 5 seconds by default, so it no longer hangs when a child process keeps the output open.
+- Fix: Resolved an issue where the ExitCode property became 0 after Dispose() even when the process had not exited. It is now null in that case.
 - Update: Added support for .NET 11
 
 v.1.4.1
