@@ -51,6 +51,10 @@ await XProcess.Start("foo.exe", options => {
 }).WaitForExitAsync();
 ```
 
+## Memory usage
+
+XProcess keeps every line of the process output in memory. This is how the `Output` property can return the whole output at any time, and how an async stream started later can return the lines that nobody has read yet. Because of this, memory usage grows with the amount of output. Keep this in mind when you run a process that writes a lot of output for a long time.
+
 ## Release Notes
 
 Release notes are [here.](https://github.com/jsakamoto/XProcess/blob/master/RELEASE-NOTES.txt)
