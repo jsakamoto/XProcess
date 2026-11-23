@@ -17,7 +17,7 @@ dotnet test --project XProcess.Test --filter "Name=ExitCode_Test"   # run a sing
 dotnet build XProcess -c Release                                # build and pack the .nupkg into _dist/
 ```
 
-CI (`.github/workflows/unit-tests.yml`) runs the tests on ubuntu-latest with .NET 10 on every push to `master`.
+CI (`.github/workflows/unit-tests.yml`) runs the tests on ubuntu-latest with .NET 11 on every push to `master`.
 
 ## Architecture
 
@@ -28,7 +28,7 @@ All behavior lives in `XProcess/XProcess.cs`; the other files in `XProcess/` are
 - The channel uses `AllowSynchronousContinuations = false` on purpose. With `true`, a consumer's `await foreach` body runs on the `Process` class's output reader thread, and calling `Dispose()` there deadlocks because `WaitForExit()` waits for that same thread.
 - `WaitForOutputAsync()` first tests the predicate against all buffered output joined with `\n` (and clears the buffer), then tests each new line from the stream. Idle timeout is implemented by `XProcessIdleTimeoutCanceller`, a timer reset on every received line.
 - `Dispose()` kills the process according to `XProcessOptions.WhenDisposing`. Killing the entire process tree uses `#if NET5_0_OR_GREATER`, because the library also targets `netstandard2.1`.
-- The library targets `netstandard2.1` and `net6.0` through `net10.0`, with nullable warnings treated as errors. Use only APIs available on `netstandard2.1`, or guard them with `#if`.
+- The library targets `netstandard2.1` and `net6.0` through `net11.0`, with nullable warnings treated as errors. Use only APIs available on `netstandard2.1`, or guard them with `#if`.
 
 ## Tests
 
